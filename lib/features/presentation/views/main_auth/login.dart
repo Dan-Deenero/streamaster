@@ -144,10 +144,10 @@ class Login extends StatelessWidget {
                       color: AppColors.red,
                       borderRadius: BorderRadius.circular(10)
                   ),
-                  child: const  Row(
+                  child:  Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.apple, color: Colors.white,),
+                      // SvgPicture(),
                       SizedBox(width: 12,),
                       Text('Register with Google', style: TextStyle(color: Colors.white, fontSize: 20),),
                     ],
