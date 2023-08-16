@@ -1,6 +1,16 @@
+import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:streamaster/config/keys/app_routes.dart';
+import 'package:streamaster/config/router/app_router.dart';
 import 'package:streamaster/core/shared/colors.dart';
-import 'package:flutter_svg/svg.dart';
+import 'package:streamaster/features/presentation/views/main_auth/login.dart';
+import 'package:streamaster/features/presentation/widgets/app_button.dart';
+import 'package:streamaster/features/presentation/widgets/app_spacer.dart';
+import 'package:streamaster/features/presentation/widgets/app_textformfield.dart';
+import 'package:streamaster/features/presentation/widgets/custom_text.dart';
+import 'package:streamaster/utils/helpers/validators.dart';
 
 class Register extends StatefulWidget {
   const Register({super.key});
@@ -10,214 +20,203 @@ class Register extends StatefulWidget {
 }
 
 class _RegisterState extends State<Register> {
+  static final username = TextEditingController();
+  static final email = TextEditingController();
+  static final password = TextEditingController();
+  static final confirmPassword = TextEditingController();
 
-  bool _obscureText = true; // To toggle password visibility
-  final TextEditingController _passwordController = TextEditingController();
+  final _auth = FirebaseAuth.instance;
+
+  void signUp(
+    String email,
+    String username,
+    String password,
+    String confirmPassword,
+  ) async {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return const Center(
+          child: CircularProgressIndicator(),
+        );
+      },
+    );
+
+    try {
+      if (password == confirmPassword) {
+        await FirebaseAuth.instance
+            .createUserWithEmailAndPassword(email: email, password: password)
+            .then((value) => {
+                  postDetailsToFirestore(email, username, 'No 1 willams street',
+                      'assets/images/photos/s1.png')
+                })
+            .catchError((e) {});
+
+        final snackBar = SnackBar(
+          /// need to set following properties for best effect of awesome_snackbar_content
+          elevation: 0,
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.transparent,
+          content: AwesomeSnackbarContent(
+            title: 'Congratulations',
+            message: 'Account Created Succesfully',
+
+            /// change contentType to ContentType.success, ContentType.warning or ContentType.help for variants
+            contentType: ContentType.success,
+          ),
+        );
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(snackBar);
+      } else {
+        showErrorMessage("password don't match!");
+      }
+      router.pop();
+    } on FirebaseAuthException catch (e) {
+      router.pop();
+      showErrorMessage(e.code);
+    }
+  }
+
+  postDetailsToFirestore(String email, String username, String address,
+      String profilePicture) async {
+    FirebaseFirestore fire = FirebaseFirestore.instance;
+    var user = _auth.currentUser;
+    CollectionReference ref = fire.collection('users');
+    ref.doc(user!.uid).set({
+      'email': email,
+      'isAdmin': false,
+      'username': username,
+      'address': address,
+      'profilePicture': profilePicture
+    });
+    router.go(AppRoutes.login);
+  }
+
+  void dispose() {
+    email.dispose();
+    username.dispose();
+    super.dispose();
+  }
+
+  // To toggle password visibility
+
+  void showErrorMessage(String message) {
+    final snackBar = SnackBar(
+      /// need to set following properties for best effect of awesome_snackbar_content
+      elevation: 0,
+      behavior: SnackBarBehavior.floating,
+      backgroundColor: Colors.transparent,
+      content: AwesomeSnackbarContent(
+        title: 'On Snap!',
+        message: message,
+
+        /// change contentType to ContentType.success, ContentType.warning or ContentType.help for variants
+        contentType: ContentType.failure,
+      ),
+    );
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(snackBar);
+  }
 
   @override
   Widget build(BuildContext context) {
-    return  Scaffold(
-      backgroundColor: const Color(0xFF121212),
+    return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.background,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: const  Color(0xFF121212),
-        leading: const Icon(Icons.arrow_back_ios, color: Colors.white,),
-
+        backgroundColor: Theme.of(context).colorScheme.background,
+        leading: GestureDetector(
+            onTap: () {
+              router.pop;
+            },
+            child: const Icon(
+              Icons.arrow_back_ios,
+              color: Colors.white,
+            )),
       ),
-      body:  SingleChildScrollView(
+      body: SingleChildScrollView(
+          child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 19, vertical: 12),
         child: Column(
-
           children: [
-           const SizedBox(height: 15,),
-            const Center(
-                child: Text("Let's Get Started",style: TextStyle(color: Colors.white, fontSize: 30, fontWeight: FontWeight.w600),)
+            Image.asset(
+              'assets/images/photos/DARK-DEV-X.png',
+              width: 150,
+              height: 200,
             ),
-            const  Center(
-                child: Text('Enter your details to register', style: TextStyle(fontSize: 20, color: Colors.white),)
-            ),
-
-            const   Center(
-                child: Text('with Stream Master ', style: TextStyle(fontSize: 20, color: Colors.white),)
-            ),
-
-
-
+            customText(
+                text: 'Let’s Get Started',
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                textColor: Theme.of(context).colorScheme.secondary),
+            heightSpace(2),
             Padding(
-              padding: const EdgeInsets.only(top: 20, left: 20, right: 20),
-              child: TextField(
-                decoration: InputDecoration(
-                    hintText: 'John Doe',
-                    hintStyle: const TextStyle(color: Colors.white),
-                    fillColor: const Color(0xFF222222),
-                    filled: true,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(5),
-
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(5),
-                        borderSide: const BorderSide(color: Colors.grey)
-                    )
-                ),
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: customText(
+                  text: 'Enter your details to register with StreamMaster',
+                  textAlignment: TextAlign.center,
+                  fontSize: 15,
+                  textColor: Theme.of(context).colorScheme.secondary),
             ),
-
-
-            Padding(
-              padding: const EdgeInsets.only(top: 10, left: 20, right: 17),
-              child: TextField(
-                decoration: InputDecoration(
-                    hintText: 'johndoe@gmail.com',
-                    hintStyle: const TextStyle(color: Colors.white),
-                    fillColor: const Color(0xFF222222),
-                    filled: true,
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(5)
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(5),
-                        borderSide: const BorderSide(color: Colors.grey)
-                    )
-                ),
-              ),
+            heightSpace(4),
+            CustomTextFormField(
+              hintText: 'Username',
+              textEditingController: username,
+              validator: stringValidation,
             ),
-
-
-
-
-            Padding(
-              padding: const EdgeInsets.only(top: 10, left: 20, right: 20),
-              child: TextField(
-                decoration: InputDecoration(
-                    hintText: 'Phone number',
-                    hintStyle: const TextStyle(color: Colors.white),
-                    fillColor: const Color(0xFF222222),
-                    filled: true,
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(5)
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(5),
-                        borderSide: const BorderSide(color: Colors.grey)
-                    )
-                ),
-              ),
+            heightSpace(1),
+            CustomTextFormField(
+              hintText: 'email',
+              textEditingController: email,
+              validator: emailValidation,
             ),
-
-
-
-            Padding(
-              padding: const EdgeInsets.only(top: 10, left: 20, right: 20),
-              child: TextField(
-
-                controller: _passwordController,
-                obscureText: _obscureText, // Toggle password visibility
-
-                style: const TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                    hintText: 'Password',
-                    hintStyle: const TextStyle(color: Colors.white),
-                    fillColor: const  Color(0xFF222222),
-                    filled: true,
-                    suffixIcon:  GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          _obscureText = !_obscureText;
-                        });
-                      },
-
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Icon(
-                          _obscureText
-                              ? Icons.visibility_off
-                              : Icons.visibility,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-
-                    border: OutlineInputBorder(
-
-                        borderRadius: BorderRadius.circular(5)
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(5),
-                        borderSide: const BorderSide(color: Colors.grey)
-                    )
-                ),
-              ),
+            heightSpace(1),
+            CustomTextFormField(
+              isPassword: true,
+              hintText: 'Password',
+              textEditingController: password,
+              validator: passwordValidation,
             ),
-
-            Padding(
-              padding: const EdgeInsets.only(top: 30, left: 20, right: 20,),
-              child: Container(
-                width: 365,
-                height: 50,
-                decoration: BoxDecoration(
-                    color: AppColors.purple,
-                    borderRadius: BorderRadius.circular(10)
-                ),
-                child: const Center(
-                    child: Text('Register', style: TextStyle(color: Colors.white, fontSize: 20),)
-                ),
-
-              ),
+            heightSpace(1),
+            CustomTextFormField(
+              isPassword: true,
+              hintText: 'confirmPassword',
+              textEditingController: confirmPassword,
+              validator: passwordValidation,
             ),
-            const SizedBox(height: 30,),
-            const  Center(
-                child: Text('Or Register with', style: TextStyle(fontSize: 16, color: Colors.white),)
+            heightSpace(3),
+            AppButton(
+              buttonText: 'Register',
+              color: AppColors.purple,
+              onTap: () {
+                signUp(email.text, username.text, password.text,
+                    confirmPassword.text);
+              },
             ),
-
-
-            Padding(
-              padding: const EdgeInsets.only(top: 30, left: 20, right: 20),
-              child: Container(
-                  width: 365,
-                  height: 50,
-                  decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(10)
-                  ),
-                  child: const  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.apple, color: Colors.black, size: 30,),
-                      SizedBox(width: 12,),
-                      Text('Register with Apple', style: TextStyle(color: Colors.black, fontSize: 20),),
-                    ],
-                  )
-              ),
-            ),
-
-            Padding(
-              padding: const EdgeInsets.only(top: 20, left: 20, right: 20, bottom: 20),
-              child: Container(
-                  width: 365,
-                  height: 50,
-                  decoration: BoxDecoration(
-                      color: AppColors.red,
-                      borderRadius: BorderRadius.circular(10)
-                  ),
-                  child:  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      SvgPicture.asset('assets/images/icons/google.svg', color: Colors.white,
-                        width: 20,
-                        height: 20,),
-                      const SizedBox(width: 12,),
-                      const Text('Register with Google', style: TextStyle(color: Colors.white, fontSize: 20),),
-                    ],
-                  )
-              ),
-            ),
-
-
+            heightSpace(3),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                customText(
+                    text: "or if you already have an account?,",
+                    fontSize: 15,
+                    textColor: Theme.of(context).colorScheme.secondary),
+                widthSpace(2),
+                GestureDetector(
+                    onTap: () {
+                      router.go(AppRoutes.login);
+                    },
+                    child: customText(
+                        text: "Log in",
+                        fontSize: 15,
+                        textColor: AppColors.purple))
+              ],
+            )
           ],
         ),
-      ),
+      )),
     );
-
-
   }
 }

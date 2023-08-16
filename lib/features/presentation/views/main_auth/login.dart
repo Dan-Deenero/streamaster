@@ -1,6 +1,20 @@
+import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:streamaster/config/keys/app_routes.dart';
+import 'package:streamaster/config/router/app_router.dart';
 import 'package:streamaster/core/shared/colors.dart';
-import 'package:flutter_svg/svg.dart';
+import 'package:streamaster/features/presentation/views/admin_pages/admin.dart';
+import 'package:streamaster/features/presentation/widgets/app_button.dart';
+import 'package:streamaster/features/presentation/widgets/app_spacer.dart';
+import 'package:streamaster/features/presentation/widgets/app_textformfield.dart';
+import 'package:streamaster/features/presentation/widgets/custom_text.dart';
+import 'package:streamaster/home/home.dart';
+import 'package:streamaster/utils/helpers/validators.dart';
+
+
+
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -11,176 +25,186 @@ class Login extends StatefulWidget {
 
 class _LoginState extends State<Login> {
 
-  bool _obscureText = true; // To toggle password visibility
-  final TextEditingController _passwordController = TextEditingController();
+  static final email = TextEditingController();
+  static final password = TextEditingController();
+
+
+  void signUserIn() async{
+
+      showDialog(
+        context: context, 
+        builder: (context){
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
+        },
+      );
+    
+     try {
+      UserCredential user = await  FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: email.text,
+        password: password.text,
+      );
+      User? firebaseUser = user.user;
+      FirebaseFirestore.instance
+                .collection('users')
+                .doc(firebaseUser!.uid)
+                .get()
+                .then((DocumentSnapshot documentSnapshot) {
+                  if (documentSnapshot.exists) {
+                    if (documentSnapshot.get('isAdmin') == true) {
+                      router.go(AppRoutes.admin);
+                    }else{
+                      router.go(AppRoutes.authpage);
+                    }      
+                  } else {
+                    print('Document does not exist on the database');
+                  }
+                });
+
+
+          final snackBar = SnackBar(
+            elevation: 0,
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.transparent,
+            
+            content: AwesomeSnackbarContent(
+              title: 'On Snap!',
+              message: 'Logged in scuccefully',
+
+              /// change contentType to ContentType.success, ContentType.warning or ContentType.help for variants
+              contentType: ContentType.success,
+            ),
+          );
+          ScaffoldMessenger.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(snackBar);      
+      
+    } 
+
+    on FirebaseAuthException catch (e) {
+     
+      Navigator.of(context).pop();
+      showErrorMessage(e.code);
+    }
+  }
+
+  void showErrorMessage(String message) {
+    final snackBar = SnackBar(
+      /// need to set following properties for best effect of awesome_snackbar_content
+      elevation: 0,
+      behavior: SnackBarBehavior.floating,
+      backgroundColor: Colors.transparent,
+      content: AwesomeSnackbarContent(
+        title: 'On Snap!',
+        message: message,
+
+        /// change contentType to ContentType.success, ContentType.warning or ContentType.help for variants
+        contentType: ContentType.failure,
+      ),
+    );
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(snackBar);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF121212),
+      backgroundColor: Theme.of(context).colorScheme.background,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: const  Color(0xFF121212),
-        leading: const Icon(Icons.arrow_back_ios, color: Colors.white,),
+        backgroundColor: Theme.of(context).colorScheme.background,
+        leading: GestureDetector(
+          onTap: () {
+            router.pop();
+          },
+          child: const Icon(Icons.arrow_back_ios, color: Colors.white,)
+        ),
 
       ),
       body:  SingleChildScrollView(
-        child: Column(
-
-          children: [
-            const SizedBox(height: 20,),
-            const Center(
-                child: Text("Let's Get Started",style: TextStyle(color: Colors.white, fontSize: 30, fontWeight: FontWeight.w600),)
-            ),
-            const  Center(
-                child: Text('Enter your details to login', style: TextStyle(fontSize: 20, color: Colors.white),)
-            ),
-
-            const   Center(
-                child: Text('with Stream Master ', style: TextStyle(fontSize: 20, color: Colors.white),)
-            ),
-
-
-
-            Padding(
-              padding: const EdgeInsets.only(top: 20, left: 20, right: 20),
-              child: TextField(
-                style: const  TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                    hintText: 'John Doe',
-                    hintStyle: const TextStyle(color: Colors.white),
-                    fillColor: const Color(0xFF222222),
-                    filled: true,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(5),
-
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(5),
-                        borderSide: const BorderSide(color: Colors.grey)
-                    )
-                ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 19),
+          child: Column(
+        
+            children: [
+              Image.asset('assets/images/photos/DARK-DEV-X.png', width: 200, height: 200,),
+              customText(text: 'Welcome Back StreamMaster', fontSize: 20, fontWeight: FontWeight.w700, textColor: Theme.of(context).colorScheme.secondary),
+              heightSpace(3),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal:16),
+                child: customText(text: 'Enter your details to login with StreamMaster', textAlignment: TextAlign.center, fontSize: 15,  textColor: Theme.of(context).colorScheme.secondary),
               ),
-            ),
+              heightSpace(5),
+        
+        
+              CustomTextFormField(
+                hintText: 'email',
+                textEditingController: email,
+                validator: emailValidation,
+              ),
 
+              heightSpace(2),
 
-
-
-
-
-            Padding(
-              padding:  const EdgeInsets.only(top: 10, left: 20, right: 20),
-
-                child: TextField(
-                  controller: _passwordController,
-                  obscureText: _obscureText, // Toggle password visibility
-                  style: const TextStyle(color: Colors.white),
-                  decoration: InputDecoration(
-                      hintText: 'Password',
-                      hintStyle: const TextStyle(color: Colors.white),
-                      fillColor: const  Color(0xFF222222),
-                      filled: true,
-                      suffixIcon:  GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              _obscureText = !_obscureText;
-                            });
-                          },
-
-                      child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                    child: Icon(
-                      _obscureText
-                          ? Icons.visibility_off
-                          : Icons.visibility,
-                      color: Colors.white,
-                    ),
-                  ),
+              CustomTextFormField(
+                isPassword: true,
+                hintText: 'Password',
+                textEditingController: password,
+                validator: passwordValidation,
+              ),
+        
+        
+              heightSpace(1),
+              Padding(
+                padding: const EdgeInsets.only(),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    GestureDetector(
+                      onTap: () {
+                        router.go(AppRoutes.resetPassword);
+                      },
+                      child: customText(
+                          text: 'Forgot Password?', 
+                          fontSize: 16, textColor: 
+                          AppColors.purple, 
+                          textAlignment: TextAlign.right,
                       ),
-
-
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(5)
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(5),
-                          borderSide: const BorderSide(color: Colors.grey)
-                      )
-                  ),
+                    ),
+                  ],
                 ),
               ),
-
-
-
-             const   Padding(
-           padding:  EdgeInsets.only( top: 10, left: 260),
-           child:  Text('forgot password?', style: TextStyle(color: AppColors.purple),),
-         ),
-            Padding(
-              padding: const EdgeInsets.only(top: 30, left: 20, right: 20,),
-              child: Container(
-                width: 365,
-                height: 50,
-                decoration: BoxDecoration(
-                    color: AppColors.purple,
-                    borderRadius: BorderRadius.circular(10)
-                ),
-                child: const Center(
-                    child: Text('Login', style: TextStyle(color: Colors.white, fontSize: 20),)
-                ),
+              heightSpace(4),
+              AppButton(
+                buttonText: 'Log in', 
+                color: AppColors.purple,
+                onTap: () {
+                  
+                  signUserIn();
+                },
               ),
-            ),
-            const SizedBox(height: 30,),
-            const  Center(
-                child: Text('Or Login with', style: TextStyle(fontSize: 16, color: Colors.white),)
-            ),
-
-
-            Padding(
-              padding: const EdgeInsets.only(top: 30, left: 20, right: 20),
-              child: Container(
-                  width: 365,
-                  height: 50,
-                  decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(10)
-                  ),
-                  child: const  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.apple, color: Colors.black, size: 30,),
-                      SizedBox(width: 12,),
-                      Text('Log In with Apple', style: TextStyle(color: Colors.black, fontSize: 20),),
-                    ],
-                  )
+              heightSpace(4),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  customText(text: "or if you don’t have an account?," , fontSize: 15, textColor: Theme.of(context).colorScheme.secondary),
+                  widthSpace(2),
+                  GestureDetector(
+                    onTap: () {
+                      router.go(AppRoutes.createAccount);
+                    },
+                    child: customText(
+                      text: "Register", 
+                      fontSize: 15, 
+                      textColor: AppColors.purple
+                    ))
+                ],
+              )
+            ],
+        
               ),
-            ),
-
-            Padding(
-              padding: const EdgeInsets.only(top: 20, left: 20, right: 20, bottom: 20),
-              child: Container(
-                  width: 365,
-                  height: 50,
-                  decoration: BoxDecoration(
-                      color: AppColors.red,
-                      borderRadius: BorderRadius.circular(10)
-                  ),
-                  child:  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      SvgPicture.asset('assets/images/icons/google.svg', color: Colors.white,
-                        width: 20,
-                        height: 20,),
-                      const SizedBox(width: 12,),
-                      const Text('Log In with Google', style: TextStyle(color: Colors.white, fontSize: 20),),
-                    ],
-                  )
-              ),
-            ),
-
-
-          ],
-
-            )
+        )
         ),
       );
 

@@ -33,9 +33,9 @@ class SplashContent extends StatelessWidget {
           ),  
         ),
         heightSpace(2),
-       customText(text: heading, fontSize: 18, textColor: AppColors.textDark, textAlignment: TextAlign.center, fontWeight: FontWeight.w900),
+       customText(text: heading, fontSize: 18, textColor: Theme.of(context).colorScheme.surface, textAlignment: TextAlign.center, fontWeight: FontWeight.w900),
        heightSpace(3),
-       customText(text: description, fontSize: 16, textColor: AppColors.textDark, textAlignment: TextAlign.center)
+       customText(text: description, fontSize: 16, textColor: Theme.of(context).colorScheme.surface, textAlignment: TextAlign.center)
         
         
       ],

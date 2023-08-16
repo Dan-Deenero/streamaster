@@ -1,10 +1,6 @@
-import 'package:flutter/material.dart';
-import 'package:sizer/sizer.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:streamaster/core/shared/colors.dart';
-import 'package:streamaster/features/presentation/widgets/app_spacer.dart';
-
+import 'package:flutter/material.dart';import 'package:flutter_svg/flutter_svg.dart';
 import 'custom_text.dart';
+
 
 class AppButton extends StatelessWidget {
   final bool isActive;
@@ -36,7 +32,7 @@ class AppButton extends StatelessWidget {
         child: Container(
           margin: const EdgeInsets.all(5),
             width: isSmall ? 225 : double.infinity,
-            height: 45,
+            height: 50,
             decoration: BoxDecoration(
                 color: color,
                 border: border,
@@ -49,7 +45,7 @@ class AppButton extends StatelessWidget {
                   iconAsset != null ? SvgPicture.asset(iconAsset!) : const SizedBox.shrink(),
                   const SizedBox(width:2),
                   customText(
-                      text: buttonText, textColor: AppColors.textDark, fontSize: 14, fontWeight: FontWeight.w600),
+                      text: buttonText, textColor: Colors.white, fontSize: 14, fontWeight: FontWeight.w600),
                 ],
               ),
             ),

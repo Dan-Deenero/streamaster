@@ -45,6 +45,24 @@ dependencies:
   curved_navigation_bar: ^1.0.3
   dynamic_curved_navigation_bar: ^0.0.2
   stylish_bottom_bar: ^1.0.3
+  awesome_snackbar_content: ^0.1.3
+  advance_notification: ^1.0.6
+  show_custom_snackbar: ^0.0.1
+  getwidget: ^3.1.1
+  provider: ^6.0.5
+  flutter_launcher_icons: "^0.13.1"
+  firebase_core: ^2.15.0
+  firebase_auth: ^4.7.2
+  cloud_firestore: ^4.8.4
+  icons_plus: ^4.0.0
+  flutter_slider_drawer: ^2.1.3
+  flutter_advanced_drawer: ^1.3.5
+  image_picker: ^1.0.2
+  firebase_storage: ^11.2.5
+  
+
+
+  
 
 dev_dependencies:
   flutter_test:
@@ -57,6 +75,14 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^2.0.0
+
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/images/photos/logo.png"
+  min_sdk_android: 21 # android min sdk min:16, default 21
+  
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -71,19 +97,37 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
-
-
-=======
     - assets/images/icons/appleDark.svg
     - assets/images/icons/appleLight.svg
     - assets/images/icons/googleDark.svg
     - assets/images/icons/googleLight.svg
+    - assets/images/icons/bookmark_adobe_express.svg
+    - assets/images/icons/gallery_adobe_express.svg
+    - assets/images/icons/home_adobe_express.svg
+    - assets/images/icons/user_adobe_express.svg
     - assets/images/photos/ui1.png
     - assets/images/photos/s1.png
     - assets/images/photos/s2.png
     - assets/images/photos/s3.png
+    - assets/images/photos/DARK-DEV-X.png
+    - assets/images/photos/WHITE-DEV-X.png
+    - assets/images/photos/logo.png
+    - assets/images/photos/Netflix.png
     - assets/images/icons/google.svg
-    - assets/images/icons/music.png
+    - assets/images/img/apple_music.png
+    - assets/images/img/music.png
+    - assets/images/img/edit.svg
+    - assets/images/img/sort.svg
+    - assets/images/img/home.svg
+    - assets/images/img/gallery.svg
+    - assets/images/img/bookmark.svg
+    - assets/images/img/user.svg
+    - assets/images/img/home2.svg
+    - assets/images/img/gallery2.svg
+    - assets/images/img/bookmark2.svg
+    - assets/images/img/user2.svg
+    - assets/images/img/album.svg
+    - assets/images/img/album2.svg
  
 
   # An image asset can refer to one or more resolution-specific "variants", see
